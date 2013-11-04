@@ -115,10 +115,21 @@ module GlobalPhone
         [
           node["pattern"],
           text_or_nil(node, "format"),
-          pattern(node, "leadingDigits"),
+          leadingDigits(node),
           node["nationalPrefixFormattingRule"],
           text_or_nil(node, "intlFormat")
         ]
+      end
+
+      def leadingDigits(node)
+        nodes = node.search("leadingDigits")
+        case nodes.length
+        when 0 # nop
+        when 1
+          squish(nodes.text)
+        else
+          nodes.map { |i| "(?:#{squish(i.text)})" }.join("|")
+        end
       end
 
       def format_nodes_for(territory_nodes)
@@ -143,6 +154,7 @@ module GlobalPhone
 
       def text_or_nil(node, selector)
         nodes = node.search(selector)
+        raise "don't concat nodes.text #{node} #{selector}" if nodes.length > 1
         nodes.empty? ? nil : nodes.text
       end
   end
